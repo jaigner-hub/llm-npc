@@ -1,0 +1,7 @@
+LIBRARY libpiper
+EXPORTS
+    piper_create
+    piper_free
+    piper_default_synthesize_options
+    piper_synthesize_start
+    piper_synthesize_next
