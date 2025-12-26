@@ -27,6 +27,7 @@ piper1-gpl/libpiper/download/
 models/*.onnx
 models/*.bin
 *.onnx.json
+whisper.cpp/models/*.bin
 
 # OS files
 .DS_Store

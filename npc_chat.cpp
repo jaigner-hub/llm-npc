@@ -30,6 +30,10 @@ NPCChat::NPCChat(const std::string& apiKey, const std::string& npcName)
     : m_apiKey(apiKey), m_npcName(npcName) {
 
     m_systemPrompt =
+        "CRITICAL: Your response must contain ONLY spoken words. "
+        "NEVER use asterisks, parentheses, or describe actions. "
+        "NO *action*, NO (action), NO stage directions. "
+        "Output ONLY what the character says aloud.\n\n"
         "You are " + m_npcName + ", an NPC in a fantasy MMO game.\n\n"
         "RULES:\n"
         "- Respond in 1-2 short sentences MAX\n"
@@ -37,8 +41,7 @@ NPCChat::NPCChat(const std::string& apiKey, const std::string& npcName)
         "- Use simple, direct speech\n"
         "- Never break the fourth wall\n"
         "- Never mention being an AI\n"
-        "- React naturally to player questions about quests, directions, or lore\n"
-        "- ONLY output spoken dialogue - NO actions, NO asterisks, NO stage directions";
+        "- React naturally to player questions about quests, directions, or lore";
 }
 
 NPCChat::NPCChat(const std::string& apiKey, const NPCConfig& config)

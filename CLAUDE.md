@@ -22,11 +22,12 @@ Microphone → Whisper STT → Claude Haiku → Piper TTS → Speakers
 | `npc_chat.cpp/h` | OpenRouter API client for Claude Haiku |
 | `npc_config.h` | NPC configuration framework (world, persona, quests) |
 | `CMakeLists.txt` | Build configuration |
+| `build.sh` | Complete build script for MSYS2 |
 
 ## Dependencies
 
-- **whisper.cpp**: Located at `C:/msys64/whisper.cpp`, provides STT
-- **libpiper**: Located at `piper1-gpl/libpiper`, provides TTS
+- **whisper.cpp**: Git submodule at `whisper.cpp/`, provides STT
+- **libpiper**: Git submodule at `piper1-gpl/libpiper/`, provides TTS
 - **SDL2**: Audio I/O
 - **libcurl**: HTTP requests to OpenRouter API
 - **OpenMP**: Required by whisper's ggml-cpu

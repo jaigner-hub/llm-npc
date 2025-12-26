@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(PIPER_INSTALL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/piper1-gpl/libpiper/install")
 set(PIPER_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/piper1-gpl/libpiper/build")
 
-# Paths to whisper.cpp
-set(WHISPER_DIR "C:/msys64/whisper.cpp")
+# Paths to whisper.cpp (submodule)
+set(WHISPER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/whisper.cpp")
 
 # Find required packages
 find_package(SDL2 REQUIRED)

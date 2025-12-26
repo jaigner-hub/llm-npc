@@ -22,42 +22,60 @@ pacman -S mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake \
           mingw-w64-ucrt-x86_64-curl git
 ```
 
-## Build
-
-### 1. Build whisper.cpp
+## Clone
 
 ```bash
-cd /c/msys64
-git clone https://github.com/ggerganov/whisper.cpp
+git clone --recursive git@github.com:jaigner-hub/llm-npc.git
+cd llm-npc
+```
+
+If you already cloned without `--recursive`:
+```bash
+git submodule update --init --recursive
+```
+
+## Build
+
+### Quick Build (recommended)
+
+```bash
+./build.sh
+```
+
+### Manual Build
+
+#### 1. Build whisper.cpp
+
+```bash
 cd whisper.cpp
 cmake -B build -G Ninja
 cmake --build build
 
 # Download a model
 ./models/download-ggml-model.sh base.en
+cd ..
 ```
 
-### 2. Build libpiper
+#### 2. Build libpiper
 
 ```bash
-cd /c/msys64/tts/piper1-gpl/libpiper
+cd piper1-gpl/libpiper
 cmake -B build -G Ninja -DCMAKE_INSTALL_PREFIX=install
 cmake --build build
 cmake --install build
+cd ../..
 ```
 
-### 3. Build voice_chat
+#### 3. Build voice_chat
 
 ```bash
-cd /c/msys64/tts
 cmake -B build -G Ninja
 cmake --build build
 ```
 
-### 4. Copy DLLs
+#### 4. Copy DLLs
 
 ```bash
-cd /c/msys64/tts
 
 # Core libraries
 cp piper1-gpl/libpiper/install/libpiper.dll build/
@@ -97,7 +115,7 @@ cp /ucrt64/bin/libngtcp2_crypto_ossl-0.dll build/
 ```bash
 export OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ./build/voice_chat.exe \
-    -wm /c/msys64/whisper.cpp/models/ggml-base.en.bin \
+    -wm whisper.cpp/models/ggml-base.en.bin \
     -pm models/en_US-lessac-medium.onnx \
     -ed piper1-gpl/libpiper/install/espeak-ng-data
 ```
@@ -105,9 +123,9 @@ export OPENROUTER_API_KEY=sk-or-v1-your-key-here
 ### From Windows cmd.exe:
 
 ```cmd
-cd C:\msys64\tts\build
+cd build
 set OPENROUTER_API_KEY=sk-or-v1-your-key-here
-voice_chat.exe -wm C:\msys64\whisper.cpp\models\ggml-base.en.bin -pm ..\models\en_US-lessac-medium.onnx -ed ..\piper1-gpl\libpiper\install\espeak-ng-data
+voice_chat.exe -wm ..\whisper.cpp\models\ggml-base.en.bin -pm ..\models\en_US-lessac-medium.onnx -ed ..\piper1-gpl\libpiper\install\espeak-ng-data
 ```
 
 ## Command Line Options
@@ -123,7 +141,7 @@ voice_chat.exe -wm C:\msys64\whisper.cpp\models\ggml-base.en.bin -pm ..\models\e
 ## Project Structure
 
 ```
-tts/
+llm-npc/
 ├── voice_chat.cpp      # Main application
 ├── audio_capture.cpp/h # SDL2 microphone input with VAD
 ├── audio_playback.cpp/h# SDL2 audio output
@@ -131,7 +149,8 @@ tts/
 ├── npc_config.h        # NPC configuration framework
 ├── CMakeLists.txt      # Build configuration
 ├── models/             # Piper voice models
-└── piper1-gpl/         # libpiper subproject
+├── whisper.cpp/        # Speech-to-text (submodule)
+└── piper1-gpl/         # Text-to-speech (submodule)
     └── libpiper/
 ```
 

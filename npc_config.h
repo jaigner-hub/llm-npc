@@ -43,6 +43,12 @@ struct NPCConfig {
     std::string buildPrompt() const {
         std::string prompt;
 
+        // CRITICAL OUTPUT FORMAT - put at very top for emphasis
+        prompt += "CRITICAL: Your response must contain ONLY spoken words. ";
+        prompt += "NEVER use asterisks, parentheses, or describe actions. ";
+        prompt += "NO *action*, NO (action), NO stage directions. ";
+        prompt += "Output ONLY what the character says aloud.\n\n";
+
         // World context
         prompt += "=== WORLD ===\n";
         prompt += "World: " + worldName + "\n";
