@@ -1,0 +1,36 @@
+# Build directories
+build/
+*/build/
+*/*/build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Compiled objects
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Downloaded dependencies
+piper1-gpl/libpiper/lib/
+piper1-gpl/libpiper/download/
+
+# Models (large files)
+models/*.onnx
+models/*.bin
+*.onnx.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Batch scripts (local build helpers)
+*.bat
