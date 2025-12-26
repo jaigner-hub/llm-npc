@@ -9,6 +9,23 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
     return size * nmemb;
 }
 
+// Escape special characters for JSON string
+static std::string escapeJson(const std::string& str) {
+    std::string result;
+    result.reserve(str.size() * 2);
+    for (char c : str) {
+        switch (c) {
+            case '"':  result += "\\\""; break;
+            case '\\': result += "\\\\"; break;
+            case '\n': result += "\\n"; break;
+            case '\r': result += "\\r"; break;
+            case '\t': result += "\\t"; break;
+            default:   result += c; break;
+        }
+    }
+    return result;
+}
+
 NPCChat::NPCChat(const std::string& apiKey, const std::string& npcName)
     : m_apiKey(apiKey), m_npcName(npcName) {
 
@@ -20,7 +37,8 @@ NPCChat::NPCChat(const std::string& apiKey, const std::string& npcName)
         "- Use simple, direct speech\n"
         "- Never break the fourth wall\n"
         "- Never mention being an AI\n"
-        "- React naturally to player questions about quests, directions, or lore";
+        "- React naturally to player questions about quests, directions, or lore\n"
+        "- ONLY output spoken dialogue - NO actions, NO asterisks, NO stage directions";
 }
 
 NPCChat::NPCChat(const std::string& apiKey, const NPCConfig& config)
@@ -58,7 +76,7 @@ std::string NPCChat::chat(const std::string& playerMessage) {
 
     if (contentStart == std::string::npos) {
         std::cerr << "Failed to parse response: " << response << std::endl;
-        return "*The NPC stares blankly*";
+        return "Hmm, I didn't quite catch that.";
     }
 
     size_t contentEnd = response.find("\"", contentStart);
@@ -81,11 +99,11 @@ std::string NPCChat::buildRequestJson() {
     json << "\"model\":\"anthropic/claude-3-haiku\",";
     json << "\"max_tokens\":100,";
     json << "\"messages\":[";
-    json << "{\"role\":\"system\",\"content\":\"" << m_systemPrompt << "\"},";
+    json << "{\"role\":\"system\",\"content\":\"" << escapeJson(m_systemPrompt) << "\"},";
 
     for (size_t i = 0; i < m_history.size(); ++i) {
         json << "{\"role\":\"" << m_history[i].role << "\",";
-        json << "\"content\":\"" << m_history[i].content << "\"}";
+        json << "\"content\":\"" << escapeJson(m_history[i].content) << "\"}";
         if (i < m_history.size() - 1) json << ",";
     }
 

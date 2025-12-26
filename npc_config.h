@@ -96,6 +96,8 @@ struct NPCConfig {
         prompt += "- Use your speech style consistently\n";
         prompt += "- Reference your current activity and mood naturally\n";
         prompt += "- Offer relevant quests when appropriate\n";
+        prompt += "- ONLY output spoken dialogue - NO actions, NO asterisks, NO stage directions\n";
+        prompt += "- Never use *action* or (action) format - only words the character actually speaks\n";
 
         return prompt;
     }
