@@ -6,6 +6,40 @@ set -e  # Exit on error
 
 echo "=== Building llm-npc ==="
 
+# Check we're in MSYS2 UCRT64 environment
+if [[ "$MSYSTEM" != "UCRT64" ]]; then
+    echo "Warning: This script is designed for MSYS2 UCRT64 environment"
+    echo "Current environment: $MSYSTEM"
+    echo "Run from MSYS2 UCRT64 terminal for best results"
+fi
+
+# Install dependencies if missing
+echo "=== Checking dependencies ==="
+PACKAGES=""
+
+# Check for each required package
+command -v gcc >/dev/null 2>&1 || PACKAGES="$PACKAGES mingw-w64-ucrt-x86_64-gcc"
+command -v cmake >/dev/null 2>&1 || PACKAGES="$PACKAGES mingw-w64-ucrt-x86_64-cmake"
+command -v ninja >/dev/null 2>&1 || PACKAGES="$PACKAGES mingw-w64-ucrt-x86_64-ninja"
+command -v git >/dev/null 2>&1 || PACKAGES="$PACKAGES git"
+
+# Check for SDL2 (library, not command)
+if ! pkg-config --exists sdl2 2>/dev/null; then
+    PACKAGES="$PACKAGES mingw-w64-ucrt-x86_64-SDL2"
+fi
+
+# Check for curl
+if ! pkg-config --exists libcurl 2>/dev/null; then
+    PACKAGES="$PACKAGES mingw-w64-ucrt-x86_64-curl"
+fi
+
+if [ -n "$PACKAGES" ]; then
+    echo "Installing missing packages:$PACKAGES"
+    pacman -S --needed --noconfirm $PACKAGES
+else
+    echo "All dependencies installed"
+fi
+
 # Check we're in the right directory
 if [ ! -f "CMakeLists.txt" ]; then
     echo "Error: Run this script from the llm-npc root directory"
