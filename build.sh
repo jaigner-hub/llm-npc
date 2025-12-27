@@ -69,6 +69,17 @@ if [ ! -f "whisper.cpp/models/ggml-base.en.bin" ]; then
     cd ..
 fi
 
+# Download piper voice model if not present
+if [ ! -f "models/en_US-lessac-medium.onnx" ]; then
+    echo ""
+    echo "=== Downloading piper voice model ==="
+    mkdir -p models
+    curl -L -o models/en_US-lessac-medium.onnx \
+        https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+    curl -L -o models/en_US-lessac-medium.onnx.json \
+        https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+fi
+
 # Step 2: Build libpiper
 echo ""
 echo "=== Step 2: Building libpiper ==="
