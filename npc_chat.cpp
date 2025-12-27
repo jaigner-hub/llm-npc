@@ -62,13 +62,54 @@ void NPCChat::clearHistory() {
     m_history.clear();
 }
 
+// Find closing quote, skipping escaped quotes
+static size_t findClosingQuote(const std::string& s, size_t start) {
+    for (size_t i = start; i < s.size(); i++) {
+        if (s[i] == '"') {
+            // Check if this quote is escaped (count preceding backslashes)
+            size_t backslashes = 0;
+            size_t j = i;
+            while (j > start && s[j - 1] == '\\') {
+                backslashes++;
+                j--;
+            }
+            // If even number of backslashes, the quote is not escaped
+            if (backslashes % 2 == 0) {
+                return i;
+            }
+        }
+    }
+    return std::string::npos;
+}
+
+// Unescape JSON string
+static std::string unescapeJson(const std::string& s) {
+    std::string result;
+    result.reserve(s.size());
+    for (size_t i = 0; i < s.size(); i++) {
+        if (s[i] == '\\' && i + 1 < s.size()) {
+            switch (s[i + 1]) {
+                case 'n':  result += '\n'; i++; break;
+                case 'r':  result += '\r'; i++; break;
+                case 't':  result += '\t'; i++; break;
+                case '"':  result += '"';  i++; break;
+                case '\\': result += '\\'; i++; break;
+                default:   result += s[i]; break;
+            }
+        } else {
+            result += s[i];
+        }
+    }
+    return result;
+}
+
 std::string NPCChat::chat(const std::string& playerMessage) {
     m_history.push_back({"user", playerMessage});
 
     std::string json = buildRequestJson();
     std::string response = makeRequest(json);
 
-    // Parse response - simple extraction
+    // Parse response - find "content":"..." or "content": "..."
     size_t contentStart = response.find("\"content\":\"");
     if (contentStart == std::string::npos) {
         contentStart = response.find("\"content\": \"");
@@ -82,15 +123,17 @@ std::string NPCChat::chat(const std::string& playerMessage) {
         return "Hmm, I didn't quite catch that.";
     }
 
-    size_t contentEnd = response.find("\"", contentStart);
+    // Find closing quote (handling escaped quotes)
+    size_t contentEnd = findClosingQuote(response, contentStart);
+    if (contentEnd == std::string::npos) {
+        std::cerr << "Failed to find end of content: " << response << std::endl;
+        return "Hmm, I didn't quite catch that.";
+    }
+
     std::string npcResponse = response.substr(contentStart, contentEnd - contentStart);
 
-    // Unescape basic sequences
-    size_t pos = 0;
-    while ((pos = npcResponse.find("\\n", pos)) != std::string::npos) {
-        npcResponse.replace(pos, 2, "\n");
-        pos++;
-    }
+    // Unescape JSON string
+    npcResponse = unescapeJson(npcResponse);
 
     m_history.push_back({"assistant", npcResponse});
     return npcResponse;
