@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <fstream>
 
 #include "whisper.h"
 #include "ggml-backend.h"
@@ -94,6 +95,73 @@ bool parse_args(int argc, char** argv, voice_chat_params& params) {
     return true;
 }
 
+// Load API key from file or environment
+// Checks: .env, config.txt, ~/.openrouter_key, then OPENROUTER_API_KEY env var
+std::string load_api_key() {
+    std::string key;
+
+    // List of files to check (in order of priority)
+    std::vector<std::string> key_files = {
+        ".env",
+        "config.txt",
+    };
+
+    // Add home directory key file
+    const char* home = std::getenv("HOME");
+    if (!home) home = std::getenv("USERPROFILE");  // Windows
+    if (home) {
+        key_files.push_back(std::string(home) + "/.openrouter_key");
+    }
+
+    for (const auto& filepath : key_files) {
+        std::ifstream file(filepath);
+        if (file.is_open()) {
+            std::string line;
+            while (std::getline(file, line)) {
+                // Skip empty lines and comments
+                if (line.empty() || line[0] == '#') continue;
+
+                // Check for KEY=VALUE format
+                size_t eq = line.find('=');
+                if (eq != std::string::npos) {
+                    std::string name = line.substr(0, eq);
+                    std::string value = line.substr(eq + 1);
+
+                    // Trim whitespace
+                    while (!name.empty() && std::isspace(name.back())) name.pop_back();
+                    while (!value.empty() && std::isspace(value.front())) value.erase(0, 1);
+                    while (!value.empty() && std::isspace(value.back())) value.pop_back();
+
+                    // Remove quotes if present
+                    if (value.size() >= 2 && value.front() == '"' && value.back() == '"') {
+                        value = value.substr(1, value.size() - 2);
+                    }
+
+                    if (name == "OPENROUTER_API_KEY") {
+                        fprintf(stderr, "Loaded API key from %s\n", filepath.c_str());
+                        return value;
+                    }
+                } else {
+                    // Plain key value (no = sign)
+                    while (!line.empty() && std::isspace(line.back())) line.pop_back();
+                    if (!line.empty()) {
+                        fprintf(stderr, "Loaded API key from %s\n", filepath.c_str());
+                        return line;
+                    }
+                }
+            }
+        }
+    }
+
+    // Fall back to environment variable
+    const char* env_key = std::getenv("OPENROUTER_API_KEY");
+    if (env_key && strlen(env_key) > 0) {
+        return std::string(env_key);
+    }
+
+    return "";
+}
+
 // Trim whitespace and filter out whisper artifacts
 std::string clean_transcription(const std::string& text) {
     std::string result;
@@ -129,13 +197,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Check for API key
-    const char* api_key = std::getenv("OPENROUTER_API_KEY");
-    if (!api_key || strlen(api_key) == 0) {
-        fprintf(stderr, "Error: OPENROUTER_API_KEY environment variable not set\n");
+    // Load API key from config file or environment
+    std::string api_key = load_api_key();
+    if (api_key.empty()) {
+        fprintf(stderr, "Error: API key not found\n");
+        fprintf(stderr, "Set OPENROUTER_API_KEY environment variable, or create one of:\n");
+        fprintf(stderr, "  .env                    (with OPENROUTER_API_KEY=your-key)\n");
+        fprintf(stderr, "  config.txt              (with OPENROUTER_API_KEY=your-key)\n");
+        fprintf(stderr, "  ~/.openrouter_key       (just the key, no variable name)\n");
         return 1;
     }
-    fprintf(stderr, "API key loaded (length: %zu)\n", strlen(api_key));
+    fprintf(stderr, "API key loaded (length: %zu)\n", api_key.length());
 
     fprintf(stderr, "Initializing voice chat...\n");
 

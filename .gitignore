@@ -29,6 +29,10 @@ models/*.bin
 *.onnx.json
 whisper.cpp/models/*.bin
 
+# Config files with secrets
+.env
+config.txt
+
 # OS files
 .DS_Store
 Thumbs.db
