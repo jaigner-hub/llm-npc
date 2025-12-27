@@ -46,6 +46,20 @@ ExternalProject_Add(espeak_ng_external
     UPDATE_DISCONNECTED TRUE
 )
 
+# Patch espeak-ng header for static linking on Windows/MinGW
+# The header uses __declspec(dllimport) by default, but we need static linking
+if(WIN32)
+    ExternalProject_Add_Step(espeak_ng_external patch_header
+        COMMAND ${CMAKE_COMMAND} -E copy
+            ${ESPEAKNG_INSTALL_DIR}/include/espeak-ng/speak_lib.h
+            ${ESPEAKNG_INSTALL_DIR}/include/espeak-ng/speak_lib.h.orig
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/patch_espeak_header.cmake
+            ${ESPEAKNG_INSTALL_DIR}/include/espeak-ng/speak_lib.h
+        DEPENDEES install
+        COMMENT "Patching espeak-ng header for static linking"
+    )
+endif()
+
 include_directories(
     ${ESPEAKNG_INSTALL_DIR}/include
 )
